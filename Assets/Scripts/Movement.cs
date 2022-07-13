@@ -10,19 +10,19 @@ public class Movement : MonoBehaviour
     public Camera playerCamera;
     public float lookSpeed = 2.0f;
     public float lookXLimit = 45.0f;
-
     CharacterController characterController;
     Vector3 moveDirection = Vector3.zero;
     float rotationX = 0;
-
     bool canMove = true;
 
+
+    public Transform GameSpawn;
+    public GameObject ResetPoint;
     public bool Rise;
     void Start()
     {
         characterController = GetComponent<CharacterController>();
     }
-
     void Update()
     {
         // We are grounded, so recalculate move direction based on axes
@@ -44,7 +44,7 @@ public class Movement : MonoBehaviour
 
         if (Rise == true)
         {
-            moveDirection.y = 100;
+            moveDirection.y += 0.1f;
         }
         // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
         // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
@@ -66,19 +66,30 @@ public class Movement : MonoBehaviour
             transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
         }
 
-        if(this.transform.position.y >= 1000)
+        if(transform.position.y >= 350)
         {
-            transform.Translate(-44.29f, 33.23f, 57.549f);
+            Vector3 Spawn = GameSpawn.GetComponent<Transform>().position;
+            Debug.Log("Sppeeeeeeddddd");
             Rise = false;
+            moveDirection.y = 0;
+            transform.SetPositionAndRotation(Spawn, transform.rotation);
         }
     }
-
     private void OnTriggerEnter(Collider collision)
     {
-        Debug.Log("Hit!");
-        if(collision.gameObject.tag == "Spinners")
+        if (collision.gameObject.tag == "Spinners")
         {
             Rise = true;
         }
+        if (collision.gameObject.tag == "ResetPoint")
+        {
+            ResetPoint.gameObject.GetComponent<ResetSetup>().Resets += 1;
+            ResetPoint.gameObject.GetComponent<ResetSetup>().UpdateBlocks();
+        }
+        if(collision.gameObject.tag == "Death")
+        {
+            Debug.Log("Oh no death!");
+        }
     }
+
 }
