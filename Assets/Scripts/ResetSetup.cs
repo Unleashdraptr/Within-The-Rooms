@@ -20,13 +20,13 @@ public class ResetSetup : MonoBehaviour
     public GameObject Room4Walls;
     public GameObject DropperChildren;
 
-    public GameObject BlockerStorage;
-    public GameObject PlatformStorage;
-    public GameObject DeathBlockerStorage;
-
     public bool[] Room1LocationsTaken;
     public bool[] Room2LocationsTaken;
     public bool[] DropperLocationsTaken;
+
+    public GameObject BlockerStorage;
+    public GameObject PlatformStorage;
+    public GameObject DeathBlockerStorage;
     // Start is called before the first frame update
     void Start()
     {
@@ -67,7 +67,7 @@ public class ResetSetup : MonoBehaviour
     {
         for (int i = 0; i < Room3PlatformLocations.Length; i++)
         {
-            int Sleep = Random.Range(0, 21);
+            int Sleep = Random.Range(0, 28);
             if (Sleep >= Resets)
             {
                 Instantiate(Platform, Room3PlatformLocations[i].position, Quaternion.Euler(0, 0, 0), PlatformStorage.transform);
@@ -85,19 +85,21 @@ public class ResetSetup : MonoBehaviour
     }
     void UpdateDropper()
     {
-        int Spawn = Random.Range(0, 5) + Resets;
+        int Spawn = Random.Range(1, 10) + Resets;
+        if (Spawn > 48)
+        {
+            Spawn = 48;
+        }
         for (int i = 0; i < Spawn; i++)
         {
             int Location = Random.Range(1, 49);
             if (DropperLocationsTaken[Location] == false)
             {
-                Instantiate(DeathBlocker, DropperDeathBlockerLocations[i].position, Quaternion.Euler(0, 0, 0), DeathBlockerStorage.transform);
+                Instantiate(DeathBlocker, DropperDeathBlockerLocations[Location].position, Quaternion.Euler(0, 0, 0), DeathBlockerStorage.transform);
                 DropperLocationsTaken[Location] = true;
             }
         }
     }
-
-
     void RemovePlatforms()
     {
         for (int i = PlatformStorage.transform.childCount - 1; i >= 0; i--)

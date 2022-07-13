@@ -9,6 +9,8 @@ TagManager:
   - Spinners
   - ResetPoint
   - Death
+  - Transition
+  - OverWorld
   layers:
   - Default
   - TransparentFX
