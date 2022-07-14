@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Movement : MonoBehaviour
 {
@@ -14,7 +16,7 @@ public class Movement : MonoBehaviour
     public Vector3 moveDirection = Vector3.zero;
     float rotationX = 0;
     bool canMove = true;
-    bool Jumping;
+    bool isJumping;
 
     public bool PauseState;
 
@@ -24,49 +26,115 @@ public class Movement : MonoBehaviour
     public GameObject ResetPoint;
     public bool Rise;
 
-    public int XMoveChance;
-    public int YMoveChance;
-    public int ZMoveChance;
-    public int XResetChance;
-    public int ZResetChance;
+    public bool StuckZ;
+    public bool NoX;
+    public bool NoY;
+    public bool NoZ;
+    public bool NoCamMove;
+    public float[] LevelChances = { 5, 10, 25, 35, 45};
+    public float EffectCast;
+    public float EffectLasting;
+    public int RandomChoice;
+    public float RNG;
 
+    public AudioSource Walking;
+    public AudioSource Jumping;
+    string[] DeathMessages = { "Did you just die?", "Why did you go again?", "Why cant you move?", "Whats controlling this?", "Finally Freedom." };
     void Start()
     {
         characterController = GetComponent<CharacterController>();
+        Cursor.visible = false;
     }
     void Update()
     {
+        if (EffectCast >= 2 && GetComponent<ResetSetup>().Resets > 0)
+        {
+            RNG = Random.Range(0, 50);
+            if (RNG < LevelChances[GetComponent<ResetSetup>().Resets -1] && StuckZ == false && NoX == false && NoY == false && NoZ == false && NoCamMove == false)
+            {
+                RandomChoice = Random.Range(1, 11);
+
+                if (RandomChoice <= 2)
+                {
+                    StuckZ = true;
+                }
+                if (RandomChoice > 2 && RandomChoice <= 5)
+                {
+                    NoX = true;
+                }
+                if (RandomChoice > 5 && RandomChoice <= 7)
+                {
+                    NoY = true;
+                }
+                if (RandomChoice > 7 && RandomChoice <= 9)
+                {
+                    NoZ = true;
+                }
+                if (RandomChoice == 10)
+                {
+                    NoCamMove = true;
+                }
+                EffectLasting = 0;
+            }
+            EffectCast = 0;
+        }
+        if (EffectLasting >= 10)
+        {
+            StuckZ = false;
+            NoX = false;
+            NoY = false;
+            NoZ = false;
+            NoCamMove = false;
+        }
         if (PauseState == false)
         {
-            // We are grounded, so recalculate move direction based on axes
-            Vector3 forward = transform.TransformDirection(Vector3.forward);
-            Vector3 right = transform.TransformDirection(Vector3.right);
-            float curSpeedX = canMove ? walkingSpeed * Input.GetAxis("Vertical") : 0;
-            float curSpeedY = canMove ? walkingSpeed * Input.GetAxis("Horizontal") : 0;
-            float movementDirectionY = moveDirection.y;
-            moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+            float movementDirectionY = 0f;
+            if (StuckZ == true)
+            {
+                moveDirection.z = 10f;
+            }
+            else
+            {
+                // We are grounded, so recalculate move direction based on axes
+                Vector3 forward = transform.TransformDirection(Vector3.forward);
+                Vector3 right = transform.TransformDirection(Vector3.right);
+                float curSpeedX = 0f;
+                float curSpeedY = 0f;
+                if (NoX == false)
+                {
+                    curSpeedX = canMove ? walkingSpeed * Input.GetAxis("Vertical") : 0;
+                }
+                if (NoZ == false)
+                {
+                    curSpeedY = canMove ? walkingSpeed * Input.GetAxis("Horizontal") : 0;
+                }
+                movementDirectionY = moveDirection.y;
+                moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+            }
 
-            if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
+            if (Input.GetButton("Jump") && canMove && characterController.isGrounded && NoY == false)
             {
                 moveDirection.y = jumpSpeed;
-                Jumping = true;
+                isJumping = true;
+                Walking.Stop();
+                Jumping.Play();
             }
             else
             {
                 moveDirection.y = movementDirectionY;
             }
-            if (characterController.isGrounded && Jumping == false)
+            if (characterController.isGrounded && isJumping == false)
             {
                 moveDirection.y = 0;
             }
 
             if (characterController.isGrounded)
             {
-                Jumping = false;
+                isJumping = false;
             }
             if (Rise == true)
             {
-                moveDirection.y += 0.1f;
+                moveDirection.y += 0.5f;
             }
             // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
             // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
@@ -75,47 +143,16 @@ public class Movement : MonoBehaviour
             {
                 moveDirection.y -= gravity * Time.deltaTime;
             }
-
-            int Resets = gameObject.GetComponent<ResetSetup>().Resets;
-            XMoveChance = Random.Range(1, 30) + Resets;
-            YMoveChance = Random.Range(1, 30) + Resets;
-            ZMoveChance = Random.Range(1, 30) + Resets;
-
-            XResetChance = Random.Range(1, 30) + Resets;
-            ZResetChance = Random.Range(1, 30) + Resets;
-
-            if (XMoveChance > 35)
-            {
-                Debug.Log("X move");
-                float MoveAmount = Random.Range(-10.5f, 10.5f);
-                moveDirection.x += MoveAmount;
-            }
-            if (YMoveChance > 44 && characterController.isGrounded)
-            {
-                moveDirection.y += jumpSpeed;
-            }
-            if (ZMoveChance > 35)
-            {
-                Debug.Log("Z move");
-                float MoveAmount = Random.Range(-10.5f, 10.5f);
-                moveDirection.z += MoveAmount;
-            }
-            if (XResetChance > 41)
-            {
-                Debug.Log("X Stop");
-                moveDirection.x = 0;
-            }
-            if (ZResetChance > 41)
-            {
-                Debug.Log("Z Stop");
-                moveDirection.z = 0;
-            }
-
             // Move the controller
+
             characterController.Move(moveDirection * Time.deltaTime);
+            if (characterController.isGrounded && moveDirection.x == 0 || moveDirection.z == 0)
+            {
+                Walking.Play();
+            }
 
             // Player and Camera rotation
-            if (canMove)
+            if (canMove && NoCamMove == false)
             {
                 rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
                 rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
@@ -131,7 +168,8 @@ public class Movement : MonoBehaviour
             Vector3 Spawn = GameSpawn.GetComponent<Transform>().position;
             transform.SetPositionAndRotation(Spawn, transform.rotation);
         }
-        RandomChance += 1 * Time.deltaTime;
+        EffectCast += 1 * Time.deltaTime;
+        EffectLasting += 1 * Time.deltaTime;
     }
 
     IEnumerator ResetState()
@@ -145,26 +183,33 @@ public class Movement : MonoBehaviour
     {
         if (collision.gameObject.tag == "Spinners")
         {
+            Debug.Log("Fly mode");
             Rise = true;
         }
         if (collision.gameObject.tag == "ResetPoint")
         {
-            if (gameObject.GetComponent<ResetSetup>().Resets < 15)
+            if (gameObject.GetComponent<ResetSetup>().Resets < 5)
             {
                 gameObject.GetComponent<ResetSetup>().Resets += 1;
                 gameObject.GetComponent<ResetSetup>().UpdateBlocks();
             }
-            else
-                Debug.Log("Game end");
+            if (gameObject.GetComponent<ResetSetup>().Resets == 5)
+            {
+                Cursor.visible = true;
+                SceneManager.LoadScene("End");        
+            }
         }
         if(collision.gameObject.tag == "Death")
         {
+            Cursor.visible = true;
             PauseState = true;
             GameObject.Find("UI").GetComponent<Buttons>().Death = true;
         }
         if(collision.gameObject.tag == "OverWorld")
         {
+            Debug.Log("Fake Death");
             GameObject.Find("UI").GetComponent<Buttons>().Death = true;
+            GameObject.Find("Death Text").GetComponent<Text>().text = DeathMessages[gameObject.GetComponent<ResetSetup>().Resets];
             StartCoroutine(ResetState());
         }
     }

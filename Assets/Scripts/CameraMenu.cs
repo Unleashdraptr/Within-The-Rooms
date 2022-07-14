@@ -12,7 +12,7 @@ public class CameraMenu : MonoBehaviour
     {
         if (CameraRoomNumber == 1 && MoveDown == true || CameraRoomNumber == 5 && MoveDown == true)
         {
-            transform.Translate(0, -0.0025f, 0);
+            transform.Translate(0, -0.025f, 0);
         }
         else
         {
@@ -29,7 +29,7 @@ public class CameraMenu : MonoBehaviour
             transform.SetPositionAndRotation(CameraPositions[CameraRoomNumber - 1], transform.rotation);
             WaitTime = 0;
         }
-        transform.Rotate(0, 0.0125f, 0);
+        transform.Rotate(0, 0.025f, 0);
     }
 
     private IEnumerator OnTriggerEnter(Collider other)

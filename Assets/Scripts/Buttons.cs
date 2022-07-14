@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Audio;
 
 public class Buttons : MonoBehaviour
 {
@@ -9,12 +11,16 @@ public class Buttons : MonoBehaviour
     public GameObject DeathState;
     public bool Death;
     public GameObject Player;
+    public AudioSource PauseSFX;
+
 
     private void Update()
     {
         if(Input.GetKeyDown(KeyCode.Escape) && Player.GetComponent<ResetSetup>().Resets < 5)
         {
             PauseButton();
+            Cursor.visible = true;
+            PauseSFX.Play();
         }
         if(Death == true)
         {
@@ -30,14 +36,11 @@ public class Buttons : MonoBehaviour
     {
         Application.Quit();
     }
-    public void OptionsButton()
-    {
-
-    }
     void PauseButton()
     {
         if(GameObject.Find("FPSPlayer").GetComponent<Movement>().PauseState == true)
         {
+            Cursor.visible = true;
             GameObject.Find("FPSPlayer").GetComponent<Movement>().PauseState = false;
             PauseState.transform.localScale = new Vector3(0, 0, 0);
         }
@@ -55,6 +58,7 @@ public class Buttons : MonoBehaviour
     public void ResetUI()
     {
         GameObject.Find("Play Button").transform.localScale = new Vector3(1, 1, 1);
+        GameObject.Find("Death Text").GetComponent<Text>().text = "You Died!";
         PauseState.transform.localScale = new Vector3(0, 0, 0);
         DeathState.transform.localScale = new Vector3(0, 0, 0);
         GameObject.Find("FPSPlayer").GetComponent<Movement>().PauseState = false;

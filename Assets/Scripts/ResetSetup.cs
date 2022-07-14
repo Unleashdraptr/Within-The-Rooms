@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class ResetSetup : MonoBehaviour
 {
+    public GameObject MazeWall;
     public GameObject Blocker;
     public GameObject Platform;
     public GameObject DeathBlocker;
 
     public Transform[] Room1BlockerLocations;
+    public Transform[] Room2MazeWallLocations;
     public Transform[] Room3PlatformLocations;
     public Transform[] DropperDeathBlockerLocations;
 
@@ -27,11 +29,13 @@ public class ResetSetup : MonoBehaviour
     public GameObject BlockerStorage;
     public GameObject PlatformStorage;
     public GameObject DeathBlockerStorage;
+    public GameObject MazeWallStorage;
     // Start is called before the first frame update
     void Start()
     {
         Resets = -1;
         Room1BlockerLocations = Room1Children.gameObject.GetComponentsInChildren<Transform>();
+        Room2MazeWallLocations = Room2Children.gameObject.GetComponentsInChildren<Transform>();
         Room3PlatformLocations = Room3Children.gameObject.GetComponentsInChildren<Transform>();
         DropperDeathBlockerLocations = DropperChildren.gameObject.GetComponentsInChildren<Transform>();
     }
@@ -51,7 +55,7 @@ public class ResetSetup : MonoBehaviour
     {
         for (int i = 0; i < Room1BlockerLocations.Length; i++)
         {
-            int WakeUp = Random.Range(0, 48);
+            int WakeUp = Random.Range(-2, 24);
             if (WakeUp <= Resets && Room1LocationsTaken[i] == false)
             {
                 Instantiate(Blocker, Room1BlockerLocations[i].position, Quaternion.Euler(0, 0, 90), BlockerStorage.transform);
@@ -61,13 +65,21 @@ public class ResetSetup : MonoBehaviour
     }
     void UpdateRoom2()
     {
-
+        for(int i = 0; i < Room2MazeWallLocations.Length; i++)
+        {
+            int Block = Random.Range(0, 10);
+            if(Block <= Resets && Room2LocationsTaken[i] == false)
+            {
+                Instantiate(MazeWall, Room2MazeWallLocations[i].position, Quaternion.Euler(0, 0, 0), MazeWallStorage.transform);
+                Room2LocationsTaken[i] = true;
+            }
+        }
     }
     void UpdateRoom3()
     {
         for (int i = 0; i < Room3PlatformLocations.Length; i++)
         {
-            int Sleep = Random.Range(0, 28);
+            int Sleep = Random.Range(0, 14);
             if (Sleep >= Resets)
             {
                 Instantiate(Platform, Room3PlatformLocations[i].position, Quaternion.Euler(0, 0, 0), PlatformStorage.transform);
@@ -78,9 +90,12 @@ public class ResetSetup : MonoBehaviour
     void UpdateRoom4()
     {
         int Wallspawn = Resets - 1;
-        if (Wallspawn >= 0)
+        if(Wallspawn < 11)
         {
-            Room4Walls.transform.GetChild(Wallspawn).gameObject.SetActive(true);
+            if (Wallspawn >= 0)
+            {
+                Room4Walls.transform.GetChild(Wallspawn).gameObject.SetActive(true);
+            }
         }
     }
     void UpdateDropper()
@@ -92,7 +107,7 @@ public class ResetSetup : MonoBehaviour
         }
         for (int i = 0; i < Spawn; i++)
         {
-            int Location = Random.Range(1, 49);
+            int Location = Random.Range(1, 26);
             if (DropperLocationsTaken[Location] == false)
             {
                 Instantiate(DeathBlocker, DropperDeathBlockerLocations[Location].position, Quaternion.Euler(0, 0, 0), DeathBlockerStorage.transform);
